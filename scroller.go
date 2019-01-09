@@ -23,6 +23,10 @@ func (s *Scroller) Continuous(
 ) error {
 	res, err := s.Client.Scroll(s.Index).Type(s.Type).Query(s.Query).Size(s.Size).Do(context.TODO())
 	if err != nil {
+		if err == io.EOF {
+			return onComplete()
+		}
+
 		return err
 	}
 	if res == nil {
