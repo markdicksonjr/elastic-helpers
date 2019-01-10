@@ -7,7 +7,7 @@ import (
 
 type ConvertJsonFn = func(*json.RawMessage) (interface{}, error)
 
-func UnmarshalRawJson(source *json.RawMessage) (map[string]interface{}, error) {
+func UnmarshalRawJsonToMap(source *json.RawMessage) (map[string]interface{}, error) {
 	var item interface{}
 	if err := json.Unmarshal(*source, &item); err != nil {
 		return nil, err
@@ -15,11 +15,11 @@ func UnmarshalRawJson(source *json.RawMessage) (map[string]interface{}, error) {
 	return item.(map[string]interface{}), nil
 }
 
-func UnmarshalSearchResult(result *elastic.SearchResult) ([]map[string]interface{}, error) {
+func UnmarshalSearchResultToMap(result *elastic.SearchResult) ([]map[string]interface{}, error) {
 	var unmarshalledResults []map[string]interface{}
 
 	for _, hit := range result.Hits.Hits {
-		result, err := UnmarshalRawJson(hit.Source)
+		result, err := UnmarshalRawJsonToMap(hit.Source)
 		if err != nil {
 			return nil, err
 		}
@@ -29,7 +29,7 @@ func UnmarshalSearchResult(result *elastic.SearchResult) ([]map[string]interface
 	return unmarshalledResults, nil
 }
 
-func UnmarshalSearchResultFromFn(result *elastic.SearchResult, convertFn ConvertJsonFn) ([]interface{}, error) {
+func UnmarshalSearchResult(result *elastic.SearchResult, convertFn ConvertJsonFn) ([]interface{}, error) {
 	var unmarshalledResults []interface{}
 
 	for _, hit := range result.Hits.Hits {

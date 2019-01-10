@@ -13,6 +13,7 @@ type Scroller struct {
 	Type 		string
 	Query		elastic.Query
 	Size		int
+	KeepAlive	string
 
 	scrollId	string
 }
@@ -21,7 +22,13 @@ func (s *Scroller) Continuous(
 	onBatch func(result *elastic.SearchResult) error,
 	onComplete func() error,
 ) error {
-	res, err := s.Client.Scroll(s.Index).Type(s.Type).Query(s.Query).Size(s.Size).Do(context.TODO())
+	service := s.Client.Scroll(s.Index).Type(s.Type).Query(s.Query).Size(s.Size)
+
+	if s.KeepAlive != "" {
+		service = service.KeepAlive(s.KeepAlive)
+	}
+
+	res, err :=  service.Do(context.TODO())
 	if err != nil {
 		if err == io.EOF {
 			return onComplete()
