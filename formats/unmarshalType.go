@@ -6,19 +6,18 @@ import (
 	"reflect"
 )
 
-// typeOfPtr should be the type of a pointer to the type you're unmarshalling to
-// e.g. "reflect.TypeOf(&Score{})"
-func UnmarshalJson(jsonString *json.RawMessage, typeOfPtr reflect.Type) (interface{}, error) {
-	obj := reflect.New(typeOfPtr.Elem()).Interface()
+// e.g. "reflect.TypeOf(Score{})"
+func UnmarshalJson(jsonString *json.RawMessage, typeOfVal reflect.Type) (interface{}, error) {
+	obj := reflect.New(typeOfVal).Interface()
 	return obj, json.Unmarshal(*jsonString, obj)
 }
 
-func UnmarshalSearchResultToType(result *elastic.SearchResult, typeOfPtr reflect.Type) ([]interface{}, error) {
+func UnmarshalSearchResultToType(result *elastic.SearchResult, typeOfVal reflect.Type) ([]interface{}, error) {
 	results := make([]interface{}, len(result.Hits.Hits))
 	var err error
 
 	for index, hit := range result.Hits.Hits {
-		results[index], err = UnmarshalJson(hit.Source, typeOfPtr)
+		results[index], err = UnmarshalJson(hit.Source, typeOfVal)
 		if err != nil {
 			return nil, err
 		}
