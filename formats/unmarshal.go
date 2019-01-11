@@ -3,7 +3,6 @@ package formats
 import (
 	"encoding/json"
 	"github.com/olivere/elastic"
-	"reflect"
 )
 
 type ConvertJsonFn = func(*json.RawMessage) (interface{}, error)
