@@ -11,8 +11,8 @@ import (
 func GetOne(
 	client *elastic.Client,
 	indexValue string,
-	typeVal reflect.Type,
 	query elastic.Query,
+	reflectType reflect.Type,
 ) (interface{}, error) {
 	baseResult, err := client.Search().
 		Index(indexValue).
@@ -28,7 +28,7 @@ func GetOne(
 		return nil, nil
 	}
 
-	return formats.UnmarshalJson(baseResult.Hits.Hits[0].Source, typeVal)
+	return formats.UnmarshalJson(baseResult.Hits.Hits[0].Source, reflectType)
 }
 
 func GetAll(
