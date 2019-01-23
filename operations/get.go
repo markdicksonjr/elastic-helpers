@@ -62,6 +62,10 @@ func GetAll(
 			complete <- true
 			return nil
 		})
+
+		if asyncError != nil {
+			complete <- true
+		}
 	}()
 
 	// wait until the complete channel is written to
@@ -70,6 +74,22 @@ func GetAll(
 	return finalResults, asyncError
 }
 
+/**
+Sample usage:
+
+	resultInterfaces, err := operations.GetAllGeneric(client, motorIndex, "item", elastic.NewQueryStringQuery("id:12"), func(message *json.RawMessage) (interface{}, error) {
+		var e motor.Application
+		err := json.Unmarshal(*message, &e)
+		return e, err
+	})
+	if err != nil {
+		return err
+	}
+
+	results = funk.Map(resultInterfaces, func(i interface{}) Data {
+		return i.(Data)
+	}).([]Data)
+ */
 func GetAllGeneric(
 	client *elastic.Client,
 	indexValue string,
@@ -102,6 +122,10 @@ func GetAllGeneric(
 			complete <- true
 			return nil
 		})
+
+		if asyncError != nil {
+			complete <- true
+		}
 	}()
 
 	// wait until the complete channel is written to
