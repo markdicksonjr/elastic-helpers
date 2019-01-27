@@ -13,12 +13,18 @@ func GetOne(
 	indexValue string,
 	query elastic.Query,
 	reflectType reflect.Type,
+	sourceIncludes ...string,
 ) (interface{}, error) {
-	baseResult, err := client.Search().
+	search := client.Search().
 		Index(indexValue).
 		Size(1).
-		Query(query).
-		Do(context.TODO())
+		Query(query)
+
+	if sourceIncludes != nil {
+		search = search.FetchSourceContext(elastic.NewFetchSourceContext(true).Include(sourceIncludes...))
+	}
+
+	baseResult, err := search.Do(context.TODO())
 
 	if err != nil {
 		return nil, err
