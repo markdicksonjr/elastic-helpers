@@ -21,8 +21,13 @@ type Scroller struct {
 func (s *Scroller) Continuous(
 	onBatch func(result *elastic.SearchResult) error,
 	onComplete func() error,
+	sourceIncludes ...string,
 ) error {
 	service := s.Client.Scroll(s.Index).Type(s.Type).Query(s.Query).Size(s.Size)
+
+	if sourceIncludes != nil {
+		service = service.FetchSourceContext(elastic.NewFetchSourceContext(true).Include(sourceIncludes...))
+	}
 
 	if s.KeepAlive != "" {
 		service = service.KeepAlive(s.KeepAlive)
