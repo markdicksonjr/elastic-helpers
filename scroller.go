@@ -78,3 +78,24 @@ func (s *Scroller) Continuous(
 	return onComplete()
 }
 
+func (s *Scroller) ContinuousBlocking(
+	onBatch func(result *elastic.SearchResult) error,
+	onComplete func() error,
+	sourceIncludes ...string,
+) error {
+	var err error
+	complete := make(chan bool)
+
+	go func() {
+		if err = s.Continuous(onBatch, func() error {
+			complete <- true
+			return onComplete()
+		}, sourceIncludes...); err != nil {
+			complete <- true
+		}
+	}()
+
+	<- complete
+
+	return err
+}
