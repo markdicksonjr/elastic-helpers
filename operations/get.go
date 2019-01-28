@@ -42,6 +42,7 @@ func GetAll(
 	indexValue string,
 	typeValue string,
 	query elastic.Query,
+	sourceIncludes ...string,
 ) ([]map[string]interface{}, error) {
 	scrollerInstance := elastic_helpers.Scroller{
 		Index: indexValue,
@@ -67,7 +68,7 @@ func GetAll(
 		}, func() error {
 			complete <- true
 			return nil
-		})
+		}, sourceIncludes...)
 
 		if asyncError != nil {
 			complete <- true
@@ -102,6 +103,7 @@ func GetAllGeneric(
 	typeValue string,
 	query elastic.Query,
 	convertFn formats.ConvertJsonFn,
+	sourceIncludes ...string,
 ) ([]interface{}, error) {
 	scrollerInstance := elastic_helpers.Scroller{
 		Index: indexValue,
@@ -127,7 +129,7 @@ func GetAllGeneric(
 		}, func() error {
 			complete <- true
 			return nil
-		})
+		}, sourceIncludes...)
 
 		if asyncError != nil {
 			complete <- true
