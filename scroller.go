@@ -48,7 +48,9 @@ func (s *Scroller) Continuous(
 		return errors.New("expected scrollId in results; got \"\"")
 	}
 
-	err = onBatch(res)
+	if err = onBatch(res); err != nil {
+		return err
+	}
 
 	complete := false
 	for !complete {
