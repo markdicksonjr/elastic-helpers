@@ -49,7 +49,14 @@ func Put(
 	}
 
 	if res.Errors {
-		return errors.New("error(s) occurred during bulk index request") // TODO: more details
+		for _, item := range res.Items {
+			for _, keys := range item {
+				if keys.Error != nil {
+					return errors.New("error(s) occurred during bulk index request: " + keys.Error.Reason)
+				}
+			}
+		}
+		return errors.New("error(s) occurred during bulk index request")
 	}
 
 	return nil
@@ -97,7 +104,14 @@ func PutMap(
 	}
 
 	if res.Errors {
-		return errors.New("error(s) occurred during bulk index request") // TODO: more details
+		for _, item := range res.Items {
+			for _, keys := range item {
+				if keys.Error != nil {
+					return errors.New("error(s) occurred during map bulk index request: " + keys.Error.Reason)
+				}
+			}
+		}
+		return errors.New("error(s) occurred during map bulk index request")
 	}
 
 	return nil
