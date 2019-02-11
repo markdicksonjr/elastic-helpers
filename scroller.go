@@ -12,6 +12,7 @@ type Scroller struct {
 	Index 		string
 	Type 		string
 	Query		elastic.Query
+	Body		interface{}
 	Size		int
 	KeepAlive	string
 
@@ -23,7 +24,15 @@ func (s *Scroller) Continuous(
 	onComplete func() error,
 	sourceIncludes ...string,
 ) error {
-	service := s.Client.Scroll(s.Index).Type(s.Type).Query(s.Query).Size(s.Size)
+	service := s.Client.Scroll(s.Index).Type(s.Type).Size(s.Size)
+
+	if s.Query != nil {
+		service = service.Query(s.Query)
+	}
+
+	if s.Body != nil {
+		service = service.Body(s.Body)
+	}
 
 	if sourceIncludes != nil {
 		service = service.FetchSourceContext(elastic.NewFetchSourceContext(true).Include(sourceIncludes...))
