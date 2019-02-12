@@ -86,6 +86,12 @@ func (s *Scroller) Continuous(
 		err = onBatch(res)
 	}
 
+	_, err = s.Client.ClearScroll(res.ScrollId).Do(context.TODO())
+	if err != nil {
+		return err
+	}
+
+
 	return onComplete()
 }
 
