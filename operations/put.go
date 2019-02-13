@@ -11,7 +11,7 @@ func Put(
 	client *elastic.Client,
 	documentsToInsert []interface{},
 	indexValue string,
-	typeValue string,
+	docTypeValue string,
 	idFunc func(interface{}) (string, error),
 ) error {
 	if len(documentsToInsert) == 0 {
@@ -37,7 +37,7 @@ func Put(
 		thisDoc := string(jsonVal)
 		bulkRequest.Add(elastic.NewBulkIndexRequest().
 			Index(indexValue).
-			Type(typeValue).
+			Type(docTypeValue).
 			Id(id).
 			Doc(thisDoc))
 	}
@@ -66,7 +66,7 @@ func PutMap(
 	client *elastic.Client,
 	documentsToInsert []map[string]interface{},
 	indexValue string,
-	typeValue string,
+	docTypeValue string,
 	idFunc func(map[string]interface{}) (string, error),
 ) error {
 	if len(documentsToInsert) == 0 {
@@ -92,7 +92,7 @@ func PutMap(
 		thisDoc := string(jsonVal)
 		bulkRequest.Add(elastic.NewBulkIndexRequest().
 			Index(indexValue).
-			Type(typeValue).
+			Type(docTypeValue).
 			Id(id).
 			Doc(thisDoc))
 	}
