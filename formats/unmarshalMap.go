@@ -14,14 +14,14 @@ func UnmarshalRawJsonToMap(source *json.RawMessage) (map[string]interface{}, err
 }
 
 func UnmarshalSearchResultToMap(result *elastic.SearchResult) ([]map[string]interface{}, error) {
-	var unmarshalledResults []map[string]interface{}
+	var unmarshalledResults = make([]map[string]interface{}, len(result.Hits.Hits))
+	var err error
 
-	for _, hit := range result.Hits.Hits {
-		result, err := UnmarshalRawJsonToMap(hit.Source)
+	for i, hit := range result.Hits.Hits {
+		unmarshalledResults[i], err = UnmarshalRawJsonToMap(hit.Source)
 		if err != nil {
 			return nil, err
 		}
-		unmarshalledResults = append(unmarshalledResults, result)
 	}
 
 	return unmarshalledResults, nil

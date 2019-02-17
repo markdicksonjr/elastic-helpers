@@ -42,7 +42,7 @@ func (s *Scroller) Continuous(
 		service = service.KeepAlive(s.KeepAlive)
 	}
 
-	res, err :=  service.Do(context.TODO())
+	res, err := service.Do(context.TODO())
 	if err != nil {
 		if err == io.EOF {
 			return onComplete()
@@ -63,7 +63,7 @@ func (s *Scroller) Continuous(
 
 	complete := false
 	for !complete {
-		service := s.Client.Scroll(s.Index).ScrollId(res.ScrollId).Size(s.Size)
+		service = s.Client.Scroll(s.Index).ScrollId(res.ScrollId).Size(s.Size)
 
 		if s.KeepAlive != "" {
 			service = service.KeepAlive(s.KeepAlive)
