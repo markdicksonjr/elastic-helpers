@@ -8,9 +8,9 @@ import (
 )
 
 type PutResultCounts struct {
-	Errors		int
-	Inserted	int
-	Updated		int
+	Errors  int
+	Created int
+	Updated int
 }
 
 func Put(
@@ -132,9 +132,9 @@ func PutMapWithResults(
 ) (PutResultCounts, error) {
 	if len(documentsToInsert) == 0 {
 		return PutResultCounts{
-			Errors: 0,
+			Errors:  0,
 			Updated: 0,
-			Inserted: 0,
+			Created: 0,
 		}, nil
 	}
 
@@ -146,9 +146,9 @@ func PutMapWithResults(
 
 		if err != nil {
 			return PutResultCounts{
-				Errors: 0,
+				Errors:  0,
 				Updated: 0,
-				Inserted: 0,
+				Created: 0,
 			}, err
 		}
 
@@ -156,9 +156,9 @@ func PutMapWithResults(
 
 		if err != nil {
 			return PutResultCounts{
-				Errors: 0,
+				Errors:  0,
 				Updated: 0,
-				Inserted: 0,
+				Created: 0,
 			}, err
 		}
 
@@ -173,9 +173,9 @@ func PutMapWithResults(
 	res, err := bulkRequest.Do(context.TODO())
 
 	counts := PutResultCounts{
-		Errors: 0,
+		Errors:  0,
 		Updated: 0,
-		Inserted: 0,
+		Created: 0,
 	}
 
 	if res != nil {
@@ -188,8 +188,8 @@ func PutMapWithResults(
 				}
 				if keys.Result == "updated" {
 					counts.Updated++
-				} else if keys.Result == "inserted" {
-					counts.Inserted++
+				} else if keys.Result == "created" {
+					counts.Created++
 				}
 			}
 		}
