@@ -7,6 +7,12 @@ import (
 	"github.com/olivere/elastic"
 )
 
+type PutResultCounts struct {
+	Errors		int
+	Inserted	int
+	Updated		int
+}
+
 func Put(
 	client *elastic.Client,
 	documentsToInsert []interface{},
@@ -115,4 +121,87 @@ func PutMap(
 	}
 
 	return nil
+}
+
+func PutMapWithResults(
+	client *elastic.Client,
+	documentsToInsert []map[string]interface{},
+	indexValue string,
+	docTypeValue string,
+	idFunc func(map[string]interface{}) (string, error),
+) (PutResultCounts, error) {
+	if len(documentsToInsert) == 0 {
+		return PutResultCounts{
+			Errors: 0,
+			Updated: 0,
+			Inserted: 0,
+		}, nil
+	}
+
+	bulkRequest := client.Bulk()
+
+	// build the bulk insert into EsUrl
+	for _, v := range documentsToInsert {
+		jsonVal, err := json.Marshal(v)
+
+		if err != nil {
+			return PutResultCounts{
+				Errors: 0,
+				Updated: 0,
+				Inserted: 0,
+			}, err
+		}
+
+		id, err := idFunc(v)
+
+		if err != nil {
+			return PutResultCounts{
+				Errors: 0,
+				Updated: 0,
+				Inserted: 0,
+			}, err
+		}
+
+		thisDoc := string(jsonVal)
+		bulkRequest.Add(elastic.NewBulkIndexRequest().
+			Index(indexValue).
+			Type(docTypeValue).
+			Id(id).
+			Doc(thisDoc))
+	}
+
+	res, err := bulkRequest.Do(context.TODO())
+
+	counts := PutResultCounts{
+		Errors: 0,
+		Updated: 0,
+		Inserted: 0,
+	}
+
+	if res != nil {
+		errorReason := ""
+		for _, item := range res.Items {
+			for _, keys := range item {
+				if keys.Error != nil {
+					errorReason = keys.Error.Reason
+					counts.Errors++
+				}
+				if keys.Result == "updated" {
+					counts.Updated++
+				} else if keys.Result == "inserted" {
+					counts.Inserted++
+				}
+			}
+		}
+
+		if len(errorReason) > 0 {
+			return counts, errors.New("error(s) occurred during map bulk index request: " + errorReason)
+		}
+
+		if res.Errors {
+			return counts, errors.New("error(s) occurred during map bulk index request")
+		}
+	}
+
+	return counts, err
 }
