@@ -25,7 +25,7 @@ func GetAll(
 	var asyncError error
 	complete := make(chan bool)
 	go func() {
-		asyncError = scrollerInstance.Continuous(func(result *elastic.SearchResult) error {
+		asyncError = scrollerInstance.Continuous(func(result *elastic.SearchResult, _ int) error {
 			results, err := formats.UnmarshalSearchResultToMap(result)
 			if err != nil {
 				return err
@@ -86,7 +86,7 @@ func GetAllGeneric(
 	var asyncError error
 	complete := make(chan bool)
 	go func() {
-		asyncError = scrollerInstance.Continuous(func(result *elastic.SearchResult) error {
+		asyncError = scrollerInstance.Continuous(func(result *elastic.SearchResult, _ int) error {
 			results, err := formats.UnmarshalSearchResult(result, convertFn)
 			if err != nil {
 				return err

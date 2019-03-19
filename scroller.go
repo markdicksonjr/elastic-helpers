@@ -20,7 +20,7 @@ type Scroller struct {
 }
 
 func (s *Scroller) Continuous(
-	onBatch func(result *elastic.SearchResult) error,
+	onBatch func(result *elastic.SearchResult, index int) error,
 	onComplete func() error,
 	sourceIncludes ...string,
 ) error {
@@ -57,9 +57,11 @@ func (s *Scroller) Continuous(
 		return errors.New("expected scrollId in results; got \"\"")
 	}
 
-	if err = onBatch(res); err != nil {
+	index := 0
+	if err = onBatch(res, index); err != nil {
 		return err
 	}
+	index++
 
 	complete := false
 	for !complete {
@@ -83,7 +85,8 @@ func (s *Scroller) Continuous(
 			complete = true
 		}
 
-		err = onBatch(res)
+		err = onBatch(res, index)
+		index++
 	}
 
 	_, err = s.Client.ClearScroll(res.ScrollId).Do(context.TODO())
@@ -96,7 +99,7 @@ func (s *Scroller) Continuous(
 }
 
 func (s *Scroller) ContinuousBlocking(
-	onBatch func(result *elastic.SearchResult) error,
+	onBatch func(result *elastic.SearchResult, index int) error,
 	onComplete func() error,
 	sourceIncludes ...string,
 ) error {
