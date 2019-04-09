@@ -28,31 +28,28 @@ func Put(
 
 	// build the bulk insert into EsUrl
 	for _, v := range documentsToInsert {
-		if idFunc != nil {
-			jsonVal, err := json.Marshal(v)
-			if err != nil {
-				return err
-			}
-	
-			id, err := idFunc(v)
-			if err != nil {
-				return err
-			}
-	
-			bulkRequest.Add(elastic.NewBulkIndexRequest().
-				Index(indexValue).
-				Type(docTypeValue).
-				Id(id).
-				Doc(jsonVal))
-		} else {
-			bulkRequest.Add(elastic.NewBulkIndexRequest().
-				Index(indexValue).
-				Type(docTypeValue).
-				Doc(v))
+		jsonVal, err := json.Marshal(v)
+
+		if err != nil {
+			return err
 		}
+
+		id, err := idFunc(v)
+
+		if err != nil {
+			return err
+		}
+
+		thisDoc := string(jsonVal)
+		bulkRequest.Add(elastic.NewBulkIndexRequest().
+			Index(indexValue).
+			Type(docTypeValue).
+			Id(id).
+			Doc(thisDoc))
 	}
 
 	res, err := bulkRequest.Do(context.TODO())
+
 	if err != nil {
 		return err
 	}
