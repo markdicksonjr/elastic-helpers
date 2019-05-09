@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/google/uuid"
 	"github.com/olivere/elastic"
 )
 
@@ -34,7 +35,13 @@ func Put(
 			return err
 		}
 
-		id, err := idFunc(v)
+		// get the id from the ID func, if it's provided
+		var id string
+		if idFunc != nil {
+			id, err = idFunc(v)
+		} else {
+			id = uuid.New().String()
+		}
 
 		if err != nil {
 			return err
@@ -89,7 +96,13 @@ func PutMap(
 			return err
 		}
 
-		id, err := idFunc(v)
+		// get the id from the ID func, if it's provided
+		var id string
+		if idFunc != nil {
+			id, err = idFunc(v)
+		} else {
+			id = uuid.New().String()
+		}
 
 		if err != nil {
 			return err
@@ -152,7 +165,13 @@ func PutMapWithResults(
 			}, err
 		}
 
-		id, err := idFunc(v)
+		// get the id from the ID func, if it's provided
+		var id string
+		if idFunc != nil {
+			id, err = idFunc(v)
+		} else {
+			id = uuid.New().String()
+		}
 
 		if err != nil {
 			return PutResultCounts{
