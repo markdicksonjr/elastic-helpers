@@ -8,15 +8,15 @@ import (
 )
 
 type Scroller struct {
-	Client		*elastic.Client
-	Index 		string
-	Type 		string
-	Query		elastic.Query
-	Body		interface{}
-	Size		int
-	KeepAlive	string
+	Client    *elastic.Client
+	Index     string
+	Type      string
+	Query     elastic.Query
+	Body      interface{}
+	Size      int
+	KeepAlive string
 
-	scrollId	string
+	scrollId string
 }
 
 func (s *Scroller) Continuous(
@@ -85,7 +85,13 @@ func (s *Scroller) Continuous(
 			complete = true
 		}
 
-		err = onBatch(res, index)
+		if err = onBatch(res, index); err != nil {
+			return err
+		}
+
+		// dereference to give GC a hint
+		res.Hits = nil
+
 		index++
 	}
 
@@ -93,7 +99,6 @@ func (s *Scroller) Continuous(
 	if err != nil {
 		return err
 	}
-
 
 	return onComplete()
 }
@@ -115,7 +120,7 @@ func (s *Scroller) ContinuousBlocking(
 		}
 	}()
 
-	<- complete
+	<-complete
 
 	return err
 }
