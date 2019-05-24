@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/olivere/elastic"
 	"io"
+	"strings"
 )
 
 type Scroller struct {
@@ -15,6 +16,7 @@ type Scroller struct {
 	Body      interface{}
 	Size      int
 	KeepAlive string
+	Sort      string
 
 	scrollId string
 }
@@ -40,6 +42,16 @@ func (s *Scroller) Continuous(
 
 	if s.KeepAlive != "" {
 		service = service.KeepAlive(s.KeepAlive)
+	}
+
+	// if sort is specified (e.g. "timestamp:asc" or "timestamp:desc"), apply it - default to asc if in an unknown form
+	if s.Sort != "" {
+		parts := strings.Split(s.Sort, ":")
+		asc := true
+		if len(parts) == 2 && parts[1] == "desc" {
+			asc = false
+		}
+		service = service.Sort(parts[0], asc)
 	}
 
 	res, err := service.Do(context.TODO())
