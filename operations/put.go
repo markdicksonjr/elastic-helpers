@@ -42,7 +42,7 @@ func PutDocuments(
 			Index(indexValue).
 			Type(docTypeValue).
 			Id(id).
-			Doc(v.Document))
+			Doc(string(v.Document)))
 	}
 
 	if res, err := bulkRequest.Do(context.TODO()); err != nil {
