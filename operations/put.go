@@ -14,6 +14,53 @@ type PutResultCounts struct {
 	Updated int
 }
 
+type DocumentContentsWithId struct {
+	Id       string
+	Document []byte
+}
+
+func PutDocuments(
+	client *elastic.Client,
+	documentsToInsert []DocumentContentsWithId,
+	indexValue string,
+	docTypeValue string,
+) error {
+	if len(documentsToInsert) == 0 {
+		return nil
+	}
+
+	bulkRequest := client.Bulk()
+
+	// build the bulk insert into EsUrl
+	for _, v := range documentsToInsert {
+		id := v.Id
+		if v.Id == "" {
+			id = uuid.New().String()
+		}
+
+		bulkRequest.Add(elastic.NewBulkIndexRequest().
+			Index(indexValue).
+			Type(docTypeValue).
+			Id(id).
+			Doc(v.Document))
+	}
+
+	if res, err := bulkRequest.Do(context.TODO()); err != nil {
+		return err
+	} else if res.Errors {
+		for _, item := range res.Items {
+			for _, keys := range item {
+				if keys.Error != nil {
+					return errors.New("error(s) occurred during bulk index request: " + keys.Error.Reason)
+				}
+			}
+		}
+		return errors.New("error(s) occurred during bulk index request")
+	}
+
+	return nil
+}
+
 func Put(
 	client *elastic.Client,
 	documentsToInsert []interface{},
