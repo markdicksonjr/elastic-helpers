@@ -2,7 +2,7 @@ package elastic_helpers
 
 import (
 	"context"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"strconv"
 )
 

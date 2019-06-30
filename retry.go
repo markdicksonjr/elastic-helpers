@@ -3,7 +3,7 @@ package elastic_helpers
 import (
 	"context"
 	"errors"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"net/http"
 	"syscall"
 	"time"

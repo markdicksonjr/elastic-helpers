@@ -3,7 +3,7 @@ package elastic_helpers
 import (
 	"context"
 	"errors"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"io"
 	"strings"
 )
@@ -22,7 +22,7 @@ type Scroller struct {
 }
 
 func (s *Scroller) Continuous(
-	onBatch func(result *elastic.SearchResult, index int) error,
+	onBatch func(result elastic.SearchResult, index int) error,
 	onComplete func() error,
 	sourceIncludes ...string,
 ) error {
@@ -70,7 +70,7 @@ func (s *Scroller) Continuous(
 	}
 
 	index := 0
-	if err = onBatch(res, index); err != nil {
+	if err = onBatch(*res, index); err != nil {
 		return err
 	}
 	index++
@@ -97,7 +97,7 @@ func (s *Scroller) Continuous(
 			complete = true
 		}
 
-		if err = onBatch(res, index); err != nil {
+		if err = onBatch(*res, index); err != nil {
 			return err
 		}
 
@@ -116,7 +116,7 @@ func (s *Scroller) Continuous(
 }
 
 func (s *Scroller) ContinuousBlocking(
-	onBatch func(result *elastic.SearchResult, index int) error,
+	onBatch func(result elastic.SearchResult, index int) error,
 	onComplete func() error,
 	sourceIncludes ...string,
 ) error {

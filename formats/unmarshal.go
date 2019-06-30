@@ -2,12 +2,12 @@ package formats
 
 import (
 	"encoding/json"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 )
 
-type ConvertJsonFn = func(*json.RawMessage) (interface{}, error)
+type ConvertJsonFn = func(json.RawMessage) (interface{}, error)
 
-func UnmarshalSearchResult(result *elastic.SearchResult, convertFn ConvertJsonFn) ([]interface{}, error) {
+func UnmarshalSearchResult(result elastic.SearchResult, convertFn ConvertJsonFn) ([]interface{}, error) {
 	var unmarshalledResults []interface{}
 
 	for _, hit := range result.Hits.Hits {

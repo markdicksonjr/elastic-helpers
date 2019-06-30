@@ -2,14 +2,14 @@ package formats
 
 import (
 	"encoding/json"
-	"github.com/olivere/elastic"
+	"github.com/olivere/elastic/v7"
 	"reflect"
 )
 
 // e.g. "reflect.TypeOf(Score{})"
-func UnmarshalJson(jsonString *json.RawMessage, typeOfVal reflect.Type) (interface{}, error) {
+func UnmarshalJson(jsonString json.RawMessage, typeOfVal reflect.Type) (interface{}, error) {
 	obj := reflect.New(typeOfVal).Interface()
-	return obj, json.Unmarshal(*jsonString, obj)
+	return obj, json.Unmarshal(jsonString, obj)
 }
 
 func UnmarshalSearchResultToType(result *elastic.SearchResult, typeOfVal reflect.Type) ([]interface{}, error) {
