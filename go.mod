@@ -1,4 +1,4 @@
-module github.com/markdicksonjr/elastic-helpers
+module github.com/markdicksonjr/elastic-helpers/v7
 
 go 1.12
 
