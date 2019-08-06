@@ -1,8 +1,8 @@
 package operations
 
 import (
-	"github.com/markdicksonjr/elastic-helpers"
-	"github.com/markdicksonjr/elastic-helpers/formats"
+	"github.com/markdicksonjr/elastic-helpers/v6"
+	"github.com/markdicksonjr/elastic-helpers/v6/formats"
 	"github.com/olivere/elastic"
 )
 

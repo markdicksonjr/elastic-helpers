@@ -2,7 +2,7 @@ package operations
 
 import (
 	"context"
-	"github.com/markdicksonjr/elastic-helpers/formats"
+	"github.com/markdicksonjr/elastic-helpers/v6/formats"
 	"github.com/olivere/elastic"
 	"reflect"
 )
