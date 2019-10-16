@@ -21,7 +21,7 @@ func SetMaxResultWindowForIndex(client *elastic.Client, index string, windowSize
 }
 
 func SetTotalFieldsLimitForIndex(client *elastic.Client, index string, windowSize int) (acked bool, err error) {
-	jsonBody := "{ \"index\" : { \"mapping\" : { \"total_fields\" : " + strconv.Itoa(windowSize) + " } } }"
+	jsonBody := "{ \"index\" : { \"mapping\" : { \"total_fields\" : { \"limit\" : " + strconv.Itoa(windowSize) + " } } } }"
 	settingsRes, err := client.IndexPutSettings(index).BodyJson(jsonBody).Do(context.TODO())
 	acked = settingsRes != nil && settingsRes.Acknowledged
 	return
