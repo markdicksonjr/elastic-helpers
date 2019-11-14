@@ -22,4 +22,9 @@ func TestEncodePropertyName(t *testing.T) {
 	if propTrailingSpace != "Trailing" {
 		t.Fatal("trailing space was not removed")
 	}
+
+	propColon := EncodePropertyName("fg:123")
+	if propColon != "fg_123" {
+		t.Fatal("color was not removed")
+	}
 }
