@@ -98,6 +98,7 @@ func Put(
 		bulkRequest.Add(elastic.NewBulkIndexRequest().
 			Index(indexValue).
 			Type(docTypeValue).
+			RetryOnConflict(3).
 			Id(id).
 			Doc(thisDoc))
 	}
@@ -159,6 +160,7 @@ func PutMap(
 		bulkRequest.Add(elastic.NewBulkIndexRequest().
 			Index(indexValue).
 			Type(docTypeValue).
+			RetryOnConflict(3).
 			Id(id).
 			Doc(thisDoc))
 	}
