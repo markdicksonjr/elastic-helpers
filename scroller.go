@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/olivere/elastic"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -67,6 +68,36 @@ func (s *Scroller) Continuous(
 	}
 	if res.ScrollId == "" {
 		return errors.New("expected scrollId in results; got \"\"")
+	}
+
+	settings, err := s.Client.IndexGetSettings(s.Index).Do(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	currentWindow := 1000
+	if settings[s.Index] != nil {
+		indexVal, _ := settings[s.Index]
+		if indexVal.Settings["index"] != nil {
+			indexInfo, _ := indexVal.Settings["index"].(map[string]interface{})
+			if indexInfo != nil && indexInfo["max_result_window"] != nil {
+				windowText, _ := indexInfo["max_result_window"].(string)
+				if windowText != "" {
+					parsedWindow, err := strconv.ParseInt(windowText, 10, 32)
+					if err == nil {
+						currentWindow = int(parsedWindow)
+					}
+				}
+			}
+		}
+	}
+
+	if currentWindow < s.Size {
+		if acked, err := SetMaxResultWindowForIndex(s.Client, s.Index, s.Size); err != nil {
+			return err
+		} else if !acked {
+			s.Size = currentWindow
+		}
 	}
 
 	index := 0
