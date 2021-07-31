@@ -129,6 +129,8 @@ func (s *Scroller) Continuous(
 		}
 
 		if err = onBatch(*res, index); err != nil {
+			// NOTE: any error from clearing the scroll is discarded
+			_, _ = s.Client.ClearScroll(res.ScrollId).Do(context.TODO())
 			return err
 		}
 
