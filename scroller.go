@@ -7,6 +7,7 @@ import (
 	"io"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Scroller struct {
@@ -25,6 +26,15 @@ type Scroller struct {
 func (s *Scroller) Continuous(
 	onBatch func(result elastic.SearchResult, index int) error,
 	onComplete func() error,
+	sourceIncludes ...string,
+) error {
+	return s.ContinuousWithRetry(onBatch, onComplete, 3, sourceIncludes...)
+}
+
+func (s *Scroller) ContinuousWithRetry(
+	onBatch func(result elastic.SearchResult, index int) error,
+	onComplete func() error,
+	retriesRemaining int,
 	sourceIncludes ...string,
 ) error {
 	service := s.Client.Scroll(s.Index).Type(s.Type).Size(s.Size)
@@ -121,6 +131,12 @@ func (s *Scroller) Continuous(
 		}
 
 		if err != nil {
+			if retriesRemaining > 0 {
+				time.Sleep(time.Duration(15) * time.Second)
+				retriesRemaining--
+				continue
+			}
+			_, _ = s.Client.ClearScroll(res.ScrollId).Do(context.TODO())
 			return err
 		}
 
