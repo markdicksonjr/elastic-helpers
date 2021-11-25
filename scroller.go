@@ -116,9 +116,11 @@ func (s *Scroller) ContinuousWithRetry(
 	}
 	index++
 
+	scrollId := res.ScrollId
+
 	complete := false
 	for !complete {
-		service = s.Client.Scroll(s.Index).ScrollId(res.ScrollId).Size(s.Size)
+		service = s.Client.Scroll(s.Index).ScrollId(scrollId).Size(s.Size)
 
 		if s.KeepAlive != "" {
 			service = service.KeepAlive(s.KeepAlive)
@@ -136,7 +138,7 @@ func (s *Scroller) ContinuousWithRetry(
 				retriesRemaining--
 				continue
 			}
-			_, _ = s.Client.ClearScroll(res.ScrollId).Do(context.TODO())
+			_, _ = s.Client.ClearScroll(scrollId).Do(context.TODO())
 			return err
 		}
 
@@ -146,7 +148,7 @@ func (s *Scroller) ContinuousWithRetry(
 
 		if err = onBatch(*res, index); err != nil {
 			// NOTE: any error from clearing the scroll is discarded
-			_, _ = s.Client.ClearScroll(res.ScrollId).Do(context.TODO())
+			_, _ = s.Client.ClearScroll(scrollId).Do(context.TODO())
 			return err
 		}
 
