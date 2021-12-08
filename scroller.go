@@ -32,7 +32,7 @@ func (s *Scroller) Continuous(
 }
 
 func (s *Scroller) ContinuousWithRetry(
-	onBatch func(result elastic.SearchResult, index int) error,
+	onBatch func(result *elastic.SearchResult, index int) error,
 	onComplete func() error,
 	retriesRemaining int,
 	sourceIncludes ...string,
@@ -175,7 +175,7 @@ func (s *Scroller) ContinuousBlocking(
 }
 
 func (s *Scroller) ContinuousBlockingWithRetry(
-	onBatch func(result elastic.SearchResult, index int) error,
+	onBatch func(result *elastic.SearchResult, index int) error,
 	onComplete func() error,
 	retriesRemaining int,
 	sourceIncludes ...string,
