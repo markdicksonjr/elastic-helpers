@@ -132,7 +132,7 @@ func (s *Scroller) ContinuousWithRetry(
 
 		if err != nil {
 			if retriesRemaining > 0 {
-				time.Sleep(time.Duration(15) * time.Second)
+				time.Sleep(time.Duration(45) * time.Second)
 				retriesRemaining--
 				continue
 			}
@@ -169,14 +169,23 @@ func (s *Scroller) ContinuousBlocking(
 	onComplete func() error,
 	sourceIncludes ...string,
 ) error {
+	return s.ContinuousBlockingWithRetry(onBatch, onComplete, 3, sourceIncludes...)
+}
+
+func (s *Scroller) ContinuousBlockingWithRetry(
+	onBatch func(result elastic.SearchResult, index int) error,
+	onComplete func() error,
+	retriesRemaining int,
+	sourceIncludes ...string,
+) error {
 	var err error
 	complete := make(chan bool)
 
 	go func() {
-		if err = s.Continuous(onBatch, func() error {
+		if err = s.ContinuousWithRetry(onBatch, func() error {
 			complete <- true
 			return onComplete()
-		}, sourceIncludes...); err != nil {
+		}, retriesRemaining, sourceIncludes...); err != nil {
 			complete <- true
 		}
 	}()
