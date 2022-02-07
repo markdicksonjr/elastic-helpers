@@ -47,6 +47,10 @@ func (s *Scroller) ContinuousWithRetry(
 			pit = pit.KeepAlive(s.KeepAlive)
 		}
 
+		if s.Body != nil {
+			pit = pit.BodyJson(s.Body)
+		}
+
 		pitResponse, err := pit.Do(context.TODO())
 		if err != nil {
 			return err
@@ -59,8 +63,6 @@ func (s *Scroller) ContinuousWithRetry(
 		if s.Query != nil {
 			service = service.Query(s.Query)
 		}
-
-		// TODO: can't use body
 
 		if sourceIncludes != nil {
 			service = service.FetchSourceContext(elastic.NewFetchSourceContext(true).Include(sourceIncludes...))
