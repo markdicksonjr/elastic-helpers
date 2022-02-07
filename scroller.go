@@ -54,7 +54,7 @@ func (s *Scroller) ContinuousWithRetry(
 
 		defer s.Client.ClosePointInTime(pitResponse.Id)
 
-		service := s.Client.Search().Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id))
+		service := s.Client.Search().Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id)).TrackTotalHits(true)
 
 		if s.Query != nil {
 			service = service.Query(s.Query)
