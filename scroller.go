@@ -19,6 +19,7 @@ type Scroller struct {
 	Size      int
 	KeepAlive string
 	Sort      string
+	UsePIT    bool
 
 	scrollId string
 }
@@ -37,6 +38,99 @@ func (s *Scroller) ContinuousWithRetry(
 	retriesRemaining int,
 	sourceIncludes ...string,
 ) error {
+	var pit *elastic.OpenPointInTimeService
+
+	if s.Sort != "" && s.UsePIT {
+		pit = s.Client.OpenPointInTime().Index(s.Index)
+
+		if s.KeepAlive != "" {
+			pit = pit.KeepAlive(s.KeepAlive)
+		}
+
+		pitResponse, err := pit.Do(context.TODO())
+		if err != nil {
+			return err
+		}
+
+		defer s.Client.ClosePointInTime(pitResponse.Id)
+
+		service := s.Client.Search().Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id))
+
+		if s.Query != nil {
+			service = service.Query(s.Query)
+		}
+
+		// TODO: can't use body
+
+		if sourceIncludes != nil {
+			service = service.FetchSourceContext(elastic.NewFetchSourceContext(true).Include(sourceIncludes...))
+		}
+
+		// if sort is specified (e.g. "timestamp:asc" or "timestamp:desc"), apply it - default to asc if in an unknown form
+		if s.Sort != "" {
+			parts := strings.Split(s.Sort, ":")
+			asc := true
+			if len(parts) == 2 && parts[1] == "desc" {
+				asc = false
+			}
+			service = service.Sort(parts[0], asc)
+		}
+
+		res, err := service.Do(context.TODO())
+		if err != nil {
+			if err == io.EOF {
+				return onComplete()
+			}
+
+			return err
+		}
+		if res == nil {
+			return errors.New("expected results != nil; got nil")
+		}
+
+		index := 0
+		if err = onBatch(*res, index); err != nil {
+			return err
+		}
+		index++
+
+		complete := false
+		for !complete {
+			service := s.Client.Search().From(s.Size * index).Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id))
+
+			res, err := service.Do(context.TODO())
+			if err == io.EOF {
+				complete = true
+				continue
+			}
+
+			if err != nil {
+				if retriesRemaining > 0 {
+					time.Sleep(time.Duration(45) * time.Second)
+					retriesRemaining--
+					continue
+				}
+				return err
+			}
+
+			if res.Hits == nil || len(res.Hits.Hits) == 0 {
+				complete = true
+			}
+
+			if err = onBatch(*res, index); err != nil {
+				// NOTE: any error from clearing the scroll is discarded
+				return err
+			}
+
+			// dereference to give GC a hint
+			res.Hits = nil
+
+			index++
+		}
+
+		return onComplete()
+	}
+
 	service := s.Client.Scroll(s.Index).Type(s.Type).Size(s.Size)
 
 	if s.Query != nil {
