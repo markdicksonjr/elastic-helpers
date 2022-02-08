@@ -97,6 +97,9 @@ func (s *Scroller) ContinuousWithRetry(
 		complete := false
 		for !complete {
 			service := s.Client.Search().From(s.Size * index).Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id))
+			if s.Query != nil {
+				service = service.Query(s.Query)
+			}
 
 			res, err := service.Do(context.TODO())
 			if err == io.EOF {
