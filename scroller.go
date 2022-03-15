@@ -39,6 +39,7 @@ func (s *Scroller) ContinuousWithRetry(
 	sourceIncludes ...string,
 ) error {
 	var pit *elastic.OpenPointInTimeService
+	var lastSort []interface{}
 
 	if s.Sort != "" && s.UsePIT {
 		pit = s.Client.OpenPointInTime().Index(s.Index)
@@ -54,7 +55,8 @@ func (s *Scroller) ContinuousWithRetry(
 
 		defer s.Client.ClosePointInTime(pitResponse.Id)
 
-		service := s.Client.Search().Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id)).TrackTotalHits(true)
+		var service *elastic.SearchService
+		service = s.Client.Search().Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id)).TrackTotalHits(true)
 
 		if s.Query != nil {
 			service = service.Query(s.Query)
@@ -94,11 +96,28 @@ func (s *Scroller) ContinuousWithRetry(
 		}
 		index++
 
+		if len(res.Hits.Hits) > 0 {
+			lastSort = res.Hits.Hits[len(res.Hits.Hits) - 1].Sort
+		}
+
 		complete := false
 		for !complete {
-			service := s.Client.Search().From(s.Size * index).Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id)).TrackTotalHits(true)
+			service = s.Client.Search().Size(s.Size).PointInTime(elastic.NewPointInTime(pitResponse.Id)).TrackTotalHits(true)
 			if s.Query != nil {
 				service = service.Query(s.Query)
+			}
+
+			if s.Sort != "" {
+				parts := strings.Split(s.Sort, ":")
+				asc := true
+				if len(parts) == 2 && parts[1] == "desc" {
+					asc = false
+				}
+				service = service.Sort(parts[0], asc)
+			}
+
+			if lastSort != nil {
+				service.SearchAfter(lastSort...)
 			}
 
 			res, err := service.Do(context.TODO())
@@ -123,6 +142,12 @@ func (s *Scroller) ContinuousWithRetry(
 			if err = onBatch(*res, index); err != nil {
 				// NOTE: any error from clearing the scroll is discarded
 				return err
+			}
+
+			if len(res.Hits.Hits) > 0 {
+				lastSort = res.Hits.Hits[len(res.Hits.Hits) - 1].Sort
+			} else {
+				lastSort = nil
 			}
 
 			// dereference to give GC a hint
